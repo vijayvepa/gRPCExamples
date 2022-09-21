@@ -6,10 +6,25 @@
  * User Manual available at https://docs.gradle.org/7.5.1/userguide/building_java_projects.html
  */
 
+buildscript {
+    repositories {
+        gradlePluginPortal()
+    }
+    dependencies {
+        classpath 'com.google.protobuf:protobuf-gradle-plugin:0.8.19'
+    }
+}
+
 plugins {
     // Apply the java-library plugin for API and implementation separation.
     id 'java-library'
+    id "com.google.protobuf" version "0.8.19"
+    id "application"
+
+
 }
+
+def gRPCVersion = '1.24.1'
 
 repositories {
     // Use Maven Central for resolving dependencies.
@@ -25,6 +40,45 @@ dependencies {
 
     // This dependency is used internally, and not exposed to consumers on their own compile classpath.
     implementation 'com.google.guava:guava:31.0.1-jre'
+
+    implementation "io.grpc:grpc-netty:$gRPCVersion"
+    implementation "io.grpc:grpc-protobuf:$gRPCVersion"
+    implementation "io.grpc:grpc-stub:$gRPCVersion"
+    compileOnly "com.google.protobuf:protobuf-java:3.9.2"
+}
+
+protobuf{
+    protoc{
+        artifact = 'com.google.protobuf:protoc:3.9.2'
+    }
+    plugins {
+        grpc {
+            artifact = 'io.grpc:protoc-gen-grpc-java:${grpcVersion}'
+        }
+    }
+    generateProtoTasks {
+        all()*.plugins{
+            grpc{}
+        }
+    }
+}
+
+sourceSets{
+    man{
+        java{
+            srcDirs 'build/generated/source/proto/main/grpc'
+            srcDirs 'build/generated/source/proto/main/java'
+        }
+    }
+}
+
+jar{
+    manifest {
+        attributes "Main-Class": "ecommerce.ProductInfoServer"
+    }
+    from{
+        configurations.compile.collect{ it.isDirectory() ? it : zipTree(it)}
+    }
 }
 
 tasks.named('test') {
