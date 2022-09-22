@@ -12,12 +12,12 @@ import java.util.UUID;
 
 public class ProductInfoImpl extends ProductInfoGrpc.ProductInfoImplBase {
 
-    private Map<String, ProductInfoOuterClass.Product> productInfoOuterClassMap = new HashMap<>();
+    private final Map<String, ProductInfoOuterClass.Product> productMap = new HashMap<>();
 
     @Override
     public void addProduct(ProductInfoOuterClass.Product request, StreamObserver<ProductInfoOuterClass.ProductID> responseObserver) {
         String uuid = UUID.randomUUID().toString();
-        productInfoOuterClassMap.put(uuid, request);
+        productMap.put(uuid, request);
         ProductInfoOuterClass.ProductID productID =
                 ProductInfoOuterClass.ProductID.newBuilder().setValue(uuid).build();
 
@@ -28,13 +28,12 @@ public class ProductInfoImpl extends ProductInfoGrpc.ProductInfoImplBase {
     @Override
     public void getProduct(ProductInfoOuterClass.ProductID request, StreamObserver<ProductInfoOuterClass.Product> responseObserver) {
         String id = request.getValue();
-        if (!productInfoOuterClassMap.containsKey(id)) {
+        if (!productMap.containsKey(id)) {
             responseObserver.onError(new StatusException(Status.NOT_FOUND));
             return;
         }
-        ProductInfoOuterClass.Product product = productInfoOuterClassMap.get(id);
+        ProductInfoOuterClass.Product product = productMap.get(id);
         responseObserver.onNext(product);
         responseObserver.onCompleted();
-        return;
     }
 }

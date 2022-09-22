@@ -8,4 +8,5 @@
  */
 
 rootProject.name = 'GettingStarted'
-include('lib')
+include('server')
+include('client')
