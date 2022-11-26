@@ -1,0 +1,93 @@
+syntax = "proto3";
+
+package com.vijayvepa.akkagrpc.akka;
+
+import "google/api/annotations.proto";
+import "google/protobuf/empty.proto";
+
+option java_package = "com.akkagrpc.akka";
+option java_multiple_files = true;
+
+message ValidateActiveDirectoryDetailsRequest {
+  string domainName = 1;
+  string ipAddress = 2;
+  string port = 3;
+  string username = 4;
+  string password = 5;
+}
+
+message ValidateActiveDirectoryDetailsResponse {
+  bool response = 1;
+}
+ 
+message GetAkkaRequest {
+  string akkaId = 1;
+}
+message GetAkkaResponse {
+  Akka akka = 1;
+}
+
+message GetAkkasResponse {
+  Akka akka = 1;
+}
+
+message Akka {
+  string akkaId = 1;
+  string title = 2;
+  float rating = 3;
+  int32 releaseYear = 4;
+  Genre genre = 5;
+}
+
+message RegisterAkkaRequest {
+  string title = 1;
+  float rating = 2;
+  int32 releaseYear = 3;
+  Genre genre = 4;
+}
+
+enum Genre {
+  COMEDY = 0;
+  ACTION = 1;
+  HORROR = 2;
+  DRAMA = 3;
+  THRILLER = 4;
+  SCIFI = 5;
+  ROMANCE = 6;
+}
+
+message RegisterAkkaResponse {
+  string akkaId = 1;
+}
+
+message DisableAkkaRequest {
+  string akkaId = 1;
+}
+
+message DisableAkkaResponse {
+  string response = 1;
+}
+
+service AkkaService {
+  rpc getAkka(GetAkkaRequest) returns (GetAkkaResponse) {
+    option (google.api.http) = {
+      get: "/akkas/{akkaId}"
+    };
+  };
+  rpc getAkkas(google.protobuf.Empty) returns (stream GetAkkasResponse) {
+    option (google.api.http) = {
+      get: "/akkas"
+    };
+  };
+  rpc RegisterAkka (RegisterAkkaRequest) returns (RegisterAkkaResponse) {
+    option(google.api.http) = {
+      post: "/akkas"
+      body: "*"
+    };
+  };
+  rpc DisableAkka (DisableAkkaRequest) returns (DisableAkkaResponse) {
+    option(google.api.http) = {
+      delete: "/akkas/{akkaId}"
+    };
+  };
+}

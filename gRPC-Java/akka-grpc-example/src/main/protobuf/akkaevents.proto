@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+package com.vijayvepa.akkagrpc.akka;
+
+option java_package = "com.akkagrpc.akka";
+option java_multiple_files = true;
+
+message AkkaAdded {
+  string title = 1;
+  float rating = 2;
+  string description = 3;
+}

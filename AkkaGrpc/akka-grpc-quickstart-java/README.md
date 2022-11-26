@@ -2,7 +2,7 @@
 
 - Generated from https://developer.lightbend.com/start/?group=akka&project=akka-grpc-quickstart-java
 
-## Maven 
+## Maven
 
 - Ensure maven is installed
 
