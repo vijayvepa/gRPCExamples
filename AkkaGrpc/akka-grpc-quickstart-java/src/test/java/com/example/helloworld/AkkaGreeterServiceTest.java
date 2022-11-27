@@ -11,7 +11,7 @@ import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.assertEquals;
 
-public class GreeterServiceImplTest {
+public class AkkaGreeterServiceTest {
 
     @ClassRule
     public static final TestKitJunitResource testKit = new TestKitJunitResource();
@@ -21,7 +21,7 @@ public class GreeterServiceImplTest {
 
     @BeforeClass
     public static void setup() {
-        service = new GreeterServiceImpl(system);
+        service = new AkkaGreeterService(system);
     }
 
     @Test

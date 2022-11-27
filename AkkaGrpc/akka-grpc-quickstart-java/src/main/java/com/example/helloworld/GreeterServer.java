@@ -27,6 +27,7 @@ import java.security.cert.Certificate;
 import java.security.cert.CertificateFactory;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.Base64;
+import java.util.Objects;
 import java.util.concurrent.CompletionStage;
 
 //#import
@@ -52,7 +53,7 @@ public class GreeterServer {
 
         Function<HttpRequest, CompletionStage<HttpResponse>> greeterServiceHandler =
                 GreeterServiceHandlerFactory.create(
-                        new GreeterServiceImpl(actorSystem),
+                        new AkkaGreeterService(actorSystem),
                         actorSystem);
 
         CompletionStage<ServerBinding> bound =
@@ -72,7 +73,7 @@ public class GreeterServer {
 
     // FIXME this will be replaced by a more convenient utility, see https://github.com/akka/akka-grpc/issues/89
     private static HttpsConnectionContext setupHttpsCertificates() throws Exception {
-        String keyEncoded = read(GreeterServer.class.getResourceAsStream("/certs/server1.key"))
+        String keyEncoded = read(Objects.requireNonNull(GreeterServer.class.getResourceAsStream("/certs/server1.key")))
                 .replace("-----BEGIN PRIVATE KEY-----\n", "")
                 .replace("-----END PRIVATE KEY-----\n", "")
                 .replace("\n", "");
@@ -98,7 +99,7 @@ public class GreeterServer {
         SSLContext context = SSLContext.getInstance("TLS");
         context.init(keyManagerFactory.getKeyManagers(), null, new SecureRandom());
 
-        return ConnectionContext.https(context);
+        return ConnectionContext.httpsServer(context);
     }
 
     private static String read(InputStream in) throws IOException {
@@ -111,7 +112,7 @@ public class GreeterServer {
             bytesRead = in.read(buffer);
         }
 
-        return new String(byteArrayOutputStream.toByteArray(), "UTF-8");
+        return byteArrayOutputStream.toString("UTF-8");
     }
     //#server
 }

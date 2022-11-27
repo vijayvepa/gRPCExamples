@@ -19,6 +19,8 @@ service GreeterService {
   //#service-stream
   //#service-request-reply
 
+  rpc KeepSayingHello(stream HelloRequest) returns(stream HelloReply) {}
+
 }
 
 // The request message containing the user's name.

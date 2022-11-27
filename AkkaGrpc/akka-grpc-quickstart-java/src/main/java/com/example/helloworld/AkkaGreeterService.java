@@ -18,7 +18,7 @@ import java.util.concurrent.CompletionStage;
 
 //#service-request-reply
 //#service-stream
-class GreeterServiceImpl implements GreeterService {
+class AkkaGreeterService implements GreeterService {
 
     final ActorSystem<?> actorSystem;
     //#service-request-reply
@@ -26,7 +26,7 @@ class GreeterServiceImpl implements GreeterService {
     final Source<HelloReply, NotUsed> outboundHub;
     //#service-request-reply
 
-    public GreeterServiceImpl(ActorSystem<?> actorSystem) {
+    public AkkaGreeterService(ActorSystem<?> actorSystem) {
         this.actorSystem = actorSystem;
         //#service-request-reply
         Pair<Sink<HelloRequest, NotUsed>, Source<HelloReply, NotUsed>> helloRequestReply =
@@ -57,6 +57,15 @@ class GreeterServiceImpl implements GreeterService {
     public Source<HelloReply, NotUsed> sayHelloToAll(Source<HelloRequest, NotUsed> in) {
         in.runWith(inboundHub, actorSystem);
         return outboundHub;
+    }
+
+    @Override
+    public Source<HelloReply, NotUsed> keepSayingHello(Source<HelloRequest, NotUsed> in) {
+        return in.map(request->
+            HelloReply.newBuilder()
+                    .setMessage("Hello " + request.getName() + "!")
+                    .build()
+        );
     }
     //#service-request-reply
 }
