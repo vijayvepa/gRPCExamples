@@ -11,6 +11,8 @@ import org.junit.ClassRule;
 import org.junit.Test;
 
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -51,5 +53,34 @@ public class SampleStreamingTest {
         final Integer result = sourceAttachedToSink.toCompletableFuture().get(3, TimeUnit.SECONDS);
 
         assertEquals(20, result.intValue());
+    }
+
+    /**
+     * Testing a custom source can be as simple as
+     * <li> attaching a sink that collects elements from the source </li>
+     * <li> running a constructed test flow and</li>
+     * <li>asserting on the results that sink produced.</li>
+     *
+     * @throws ExecutionException   execution failed
+     * @throws InterruptedException interrupted
+     * @throws TimeoutException     timed out
+     */
+    @Test
+    public void testCustomSource() throws ExecutionException, InterruptedException, TimeoutException {
+        final Source<Integer, NotUsed> sourceUnderTest = Source.repeat(1).map(i -> i * 2);
+
+        /*
+        A Sink that keeps on collecting incoming elements until upstream terminates.
+         As upstream may be unbounded, Flow[T].take or the stricter Flow[T].limit (and their variants) may be used to ensure boundedness.
+          Materializes into a CompletionStage of Seq[T] containing all the collected elements.
+           List is limited to Integer.MAX_VALUE elements, this Sink will cancel the stream after having received that many elements.
+         */
+        final Sink<Integer, CompletionStage<List<Integer>>> sink = Sink.seq();
+
+        final CompletionStage<List<Integer>> sinkWithSourceAttached =
+                sourceUnderTest.take(10).runWith(sink, ACTOR_SYSTEM);
+
+        final List<Integer> result = sinkWithSourceAttached.toCompletableFuture().get(3, TimeUnit.SECONDS);
+        assertEquals(Collections.nCopies(10, 2), result);
     }
 }
