@@ -37,11 +37,14 @@ public class AkkaGreeterServiceTest {
     }
 
     @Test
-    public void greeterServiceRepliesToSingleRequest() throws Exception {
-        HelloReply reply = service.sayHello(buildHelloRequest("Bob"))
+    public void sayHelloTest() throws Exception {
+        final HelloRequest helloRequest = buildHelloRequest("Bob");
+
+        HelloReply reply = service.sayHello(helloRequest)
                 .toCompletableFuture()
                 .get(5, TimeUnit.SECONDS);
-        HelloReply expected = HelloReply.newBuilder().setMessage("Hello, Bob").build();
+
+        HelloReply expected = buildHelloReply("Hello, Bob");
         assertEquals(expected, reply);
     }
 
@@ -60,8 +63,6 @@ public class AkkaGreeterServiceTest {
         final List<HelloReply> expectedReplies = Stream.of("Hello Alice!", "Hello Bob!").map(message -> HelloReply.newBuilder().setMessage(message).build()).collect(Collectors.toList());
 
         assertEquals(expectedReplies, helloReplies);
-
-
     }
 
 
