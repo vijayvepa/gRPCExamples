@@ -1,13 +1,23 @@
 // #full-example
 package com.example.helloworld;
 
+import akka.NotUsed;
 import akka.actor.testkit.typed.javadsl.TestKitJunitResource;
 import akka.actor.typed.ActorSystem;
+import akka.stream.javadsl.Sink;
+import akka.stream.javadsl.Source;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.concurrent.CompletionStage;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.junit.Assert.assertEquals;
 
@@ -31,6 +41,25 @@ public class AkkaGreeterServiceTest {
                 .get(5, TimeUnit.SECONDS);
         HelloReply expected = HelloReply.newBuilder().setMessage("Hello, Bob").build();
         assertEquals(expected, reply);
+    }
+
+    @Test
+    public void keepSayingHelloTest() throws ExecutionException, InterruptedException, TimeoutException {
+        Source<HelloRequest, NotUsed> source = Source.from(Arrays.asList("Alice", "Bob")).map(name -> HelloRequest.newBuilder().setName(name).build());
+
+        final Source<HelloReply, NotUsed> sourceUnderTest = service.keepSayingHello(source);
+        final Sink<HelloReply, CompletionStage<List<HelloReply>>> collectorSink = Sink.seq();
+
+        final CompletionStage<List<HelloReply>> sourceUnderTestAttachedToSink = sourceUnderTest.runWith(collectorSink, ACTOR_SYSTEM);
+
+
+        final List<HelloReply> helloReplies = sourceUnderTestAttachedToSink.toCompletableFuture().get(3, TimeUnit.SECONDS);
+
+        final List<HelloReply> expectedReplies = Stream.of("Hello Alice!", "Hello Bob!").map(message -> HelloReply.newBuilder().setMessage(message).build()).collect(Collectors.toList());
+
+        assertEquals(expectedReplies, helloReplies);
+
+
     }
 
 }
