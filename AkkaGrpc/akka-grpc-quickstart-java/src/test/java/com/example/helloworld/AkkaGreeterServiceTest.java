@@ -71,7 +71,7 @@ public class AkkaGreeterServiceTest {
         Source<HelloRequest, NotUsed> unboundedSource = Source.range(1, 10)
                 .map(index -> "Alice-" + index)
                 .map(this::buildHelloRequest)
-                .mapMaterializedValue(ignored->notUsed());
+                .mapMaterializedValue(ignored -> notUsed());
 
         final Source<HelloReply, NotUsed> sourceUnderTest = service.keepSayingHello(unboundedSource);
         final Sink<HelloReply, CompletionStage<List<HelloReply>>> collectorSink = Sink.seq();
@@ -81,7 +81,7 @@ public class AkkaGreeterServiceTest {
 
         final List<HelloReply> helloReplies = sourceUnderTestAttachedToSink.toCompletableFuture().get(3, TimeUnit.SECONDS);
 
-        final List<HelloReply> expectedReplies = IntStream.range(1, 11).mapToObj(index-> "Hello Alice-" + index + "!").map(this::buildHelloReply).collect(Collectors.toList());
+        final List<HelloReply> expectedReplies = IntStream.range(1, 11).mapToObj(index -> "Hello Alice-" + index + "!").map(this::buildHelloReply).collect(Collectors.toList());
 
         assertEquals(expectedReplies, helloReplies);
 
