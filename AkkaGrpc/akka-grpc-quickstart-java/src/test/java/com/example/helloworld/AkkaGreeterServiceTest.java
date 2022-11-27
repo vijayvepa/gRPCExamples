@@ -17,8 +17,10 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
+import static akka.NotUsed.notUsed;
 import static org.junit.Assert.assertEquals;
 
 public class AkkaGreeterServiceTest {
@@ -36,7 +38,7 @@ public class AkkaGreeterServiceTest {
 
     @Test
     public void greeterServiceRepliesToSingleRequest() throws Exception {
-        HelloReply reply = service.sayHello(HelloRequest.newBuilder().setName("Bob").build())
+        HelloReply reply = service.sayHello(buildHelloRequest("Bob"))
                 .toCompletableFuture()
                 .get(5, TimeUnit.SECONDS);
         HelloReply expected = HelloReply.newBuilder().setMessage("Hello, Bob").build();
@@ -45,7 +47,7 @@ public class AkkaGreeterServiceTest {
 
     @Test
     public void keepSayingHelloTest() throws ExecutionException, InterruptedException, TimeoutException {
-        Source<HelloRequest, NotUsed> source = Source.from(Arrays.asList("Alice", "Bob")).map(name -> HelloRequest.newBuilder().setName(name).build());
+        Source<HelloRequest, NotUsed> source = Source.from(Arrays.asList("Alice", "Bob")).map(this::buildHelloRequest);
 
         final Source<HelloReply, NotUsed> sourceUnderTest = service.keepSayingHello(source);
         final Sink<HelloReply, CompletionStage<List<HelloReply>>> collectorSink = Sink.seq();
@@ -60,6 +62,39 @@ public class AkkaGreeterServiceTest {
         assertEquals(expectedReplies, helloReplies);
 
 
+    }
+
+
+    @Test
+    public void keepSayingHelloRangeTest() throws ExecutionException, InterruptedException, TimeoutException {
+
+        Source<HelloRequest, NotUsed> unboundedSource = Source.range(1, 10)
+                .map(index -> "Alice-" + index)
+                .map(this::buildHelloRequest)
+                .mapMaterializedValue(ignored->notUsed());
+
+        final Source<HelloReply, NotUsed> sourceUnderTest = service.keepSayingHello(unboundedSource);
+        final Sink<HelloReply, CompletionStage<List<HelloReply>>> collectorSink = Sink.seq();
+
+        final CompletionStage<List<HelloReply>> sourceUnderTestAttachedToSink = sourceUnderTest.runWith(collectorSink, ACTOR_SYSTEM);
+
+
+        final List<HelloReply> helloReplies = sourceUnderTestAttachedToSink.toCompletableFuture().get(3, TimeUnit.SECONDS);
+
+        final List<HelloReply> expectedReplies = IntStream.range(1, 11).mapToObj(index-> "Hello Alice-" + index + "!").map(this::buildHelloReply).collect(Collectors.toList());
+
+        assertEquals(expectedReplies, helloReplies);
+
+
+    }
+
+    private <T> HelloRequest buildHelloRequest(T name) {
+        return HelloRequest.newBuilder().setName(name.toString()).build();
+    }
+
+
+    private <T> HelloReply buildHelloReply(T message) {
+        return HelloReply.newBuilder().setMessage(message.toString()).build();
     }
 
 }
