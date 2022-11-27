@@ -1,5 +1,6 @@
 package com.example.helloworld;
 
+import akka.NotUsed;
 import akka.actor.testkit.typed.javadsl.TestKitJunitResource;
 import akka.actor.typed.ActorSystem;
 import akka.stream.javadsl.Flow;
@@ -42,10 +43,13 @@ public class SampleStreamingTest {
                         .toMat(Sink.fold(0, Integer::sum), Keep.right());
 
 
-        final CompletionStage<Integer> future =
-                Source.from(Arrays.asList(1, 2, 3, 4)).runWith(sinkUnderTest, ACTOR_SYSTEM);
+        final Source<Integer, NotUsed> source = Source.from(Arrays.asList(1, 2, 3, 4));
 
-        final Integer result = future.toCompletableFuture().get(3, TimeUnit.SECONDS);
+        final CompletionStage<Integer> sourceAttachedToSink =
+                source.runWith(sinkUnderTest, ACTOR_SYSTEM);
+
+        final Integer result = sourceAttachedToSink.toCompletableFuture().get(3, TimeUnit.SECONDS);
+
         assertEquals(20, result.intValue());
     }
 }
