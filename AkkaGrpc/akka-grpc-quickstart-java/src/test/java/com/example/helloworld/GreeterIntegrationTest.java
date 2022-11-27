@@ -19,7 +19,7 @@ import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.assertEquals;
 
-public class GreeterTest {
+public class GreeterIntegrationTest {
 
     // important to enable HTTP/2 in server ActorSystem's config
     private static final Config config = ConfigFactory
@@ -27,15 +27,14 @@ public class GreeterTest {
             .withFallback(ConfigFactory.defaultApplication());
 
     @ClassRule
-    public static final TestKitJunitResource testKit = new TestKitJunitResource(config);
-
-    private static ActorSystem<?> serverSystem = testKit.system();
+    public static final TestKitJunitResource TEST_KIT = new TestKitJunitResource(config);
+    private static final ActorSystem<?> SERVER_SYSTEM = TEST_KIT.system();
     private static ActorSystem<?> clientSystem;
     private static GreeterServiceClient client;
 
     @BeforeClass
     public static void setup() throws Exception {
-        CompletionStage<ServerBinding> bound = new GreeterServer(serverSystem).bindServer();
+        CompletionStage<ServerBinding> bound = new GreeterServer(SERVER_SYSTEM).bindServer();
         // make sure server is bound before using client
         bound.toCompletableFuture().get(5, TimeUnit.SECONDS);
 

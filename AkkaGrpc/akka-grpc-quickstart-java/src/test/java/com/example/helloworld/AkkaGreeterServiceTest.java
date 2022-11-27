@@ -14,14 +14,14 @@ import static org.junit.Assert.assertEquals;
 public class AkkaGreeterServiceTest {
 
     @ClassRule
-    public static final TestKitJunitResource testKit = new TestKitJunitResource();
+    public static final TestKitJunitResource TEST_KIT = new TestKitJunitResource();
 
-    private static ActorSystem<?> system = testKit.system();
+    private static final ActorSystem<?> ACTOR_SYSTEM = TEST_KIT.system();
     private static GreeterService service;
 
     @BeforeClass
     public static void setup() {
-        service = new AkkaGreeterService(system);
+        service = new AkkaGreeterService(ACTOR_SYSTEM);
     }
 
     @Test
