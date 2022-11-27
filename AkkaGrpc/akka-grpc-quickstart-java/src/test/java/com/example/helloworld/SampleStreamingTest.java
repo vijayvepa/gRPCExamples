@@ -83,4 +83,33 @@ public class SampleStreamingTest {
         final List<Integer> result = sinkWithSourceAttached.toCompletableFuture().get(3, TimeUnit.SECONDS);
         assertEquals(Collections.nCopies(10, 2), result);
     }
+
+    /**
+     * Testing a custom flow can be as simple as
+     * <li> attaching a source that emits elements from a predefined collection </li>
+     * <li> attaching a sink that collects elements from the source </li>
+     * <li> running the flow and</li>
+     * <li>asserting on the results that sink produced.</li>
+     *
+     * @throws ExecutionException   execution failed
+     * @throws InterruptedException interrupted
+     * @throws TimeoutException     timed out
+     */
+    @Test
+    public void testCustomFlow() throws ExecutionException, InterruptedException, TimeoutException {
+        final Flow<Integer, Integer, NotUsed> flowUnderTest = Flow.of(Integer.class).takeWhile(i -> i < 5);
+
+        final Source<Integer, NotUsed> source = Source.from(Arrays.asList(1, 2, 3, 4, 5, 6));
+        final Sink<Integer, CompletionStage<Integer>> aggregatorSink = Sink.fold(0, Integer::sum);
+
+        final CompletionStage<Integer> attachedFlow = source
+                .via(flowUnderTest)
+                .runWith(aggregatorSink, ACTOR_SYSTEM);
+
+        final Integer result = attachedFlow.toCompletableFuture().get(3, TimeUnit.SECONDS);
+        assertEquals(10, result.intValue());
+
+    }
+
+
 }
