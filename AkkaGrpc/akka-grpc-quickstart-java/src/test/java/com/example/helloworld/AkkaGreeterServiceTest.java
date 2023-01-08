@@ -60,7 +60,8 @@ public class AkkaGreeterServiceTest {
 
         final List<HelloReply> helloReplies = sourceUnderTestAttachedToSink.toCompletableFuture().get(3, TimeUnit.SECONDS);
 
-        final List<HelloReply> expectedReplies = Stream.of("Hello Alice!", "Hello Bob!").map(message -> HelloReply.newBuilder().setMessage(message).build()).collect(Collectors.toList());
+        final List<HelloReply> expectedReplies = Stream.of("Hello Alice!", "Hello Bob!").map(message ->
+                HelloReply.newBuilder().setMessage(message).build()).collect(Collectors.toList());
 
         assertEquals(expectedReplies, helloReplies);
     }
